@@ -228,14 +228,17 @@ const saveCitizen = (players, index) => {
   return players[index];
 };
 
+//NOTE - 시민들 생존 리셋
+//FIXME - 모든 시민이 아닌 일부 시민만 리셋하도록 조정
 const resetCitizenLifeCount = (players) => {
-  players.forEach((player) => (player.lifeCount = 0));
+  players.forEach((player) => (player.isLived = true));
 };
 
 //NOTE - 플레이어가 죽었는지 확인
 const isPlayerDie = (players, index) => {
-  return players[index].lifeCount === 0;
+  return players[index].isLived === true;
 };
+
 //NOTE - 사회자가 진행 상황 말함
 const speak = (line) => {
   console.log(`사회자 : ${line}`);
@@ -276,6 +279,7 @@ const exit = (players, index) => {
 };
 
 //NOTE - 어느 팀이 이겼는지
+//FIXME - 코드 수정
 const whoWins = (roles) => {
   const mafiaCount = roles["마피아"].length;
   const citizenCount = roles["시민"].length;
@@ -284,9 +288,10 @@ const whoWins = (roles) => {
     return { isValid: true, result: "시민" };
   }
   if (mafiaCount > citizenCount || mafiaCount === citizenCount) {
-    //FIXME - 소괄호 씌워야 하나? 소괄호 씌워도 프리티어 때문에 사라짐
-    return { isValid: false, result: "마피아" };
+    return { isValid: true, result: "마피아" };
   }
+
+  return { isValid: false };
 };
 
 //NOTE - 각 역할
@@ -466,8 +471,8 @@ const gamePlay = () => {
 
   moderator.startTimer(90); //NOTE - 시간 재기
 
-  mafiaIndexes.forEach((index) => moderator.turnOnCamera(players, index)); //NOTE - 마피아들 카메라 끔
-  mafiaIndexes.forEach((index) => moderator.turnOnMike(players, index)); //NOTE - 마피아들 마이크 끔
+  mafiaIndexes.forEach((index) => moderator.turnOffCamera(players, index)); //NOTE - 마피아들 카메라 끔
+  mafiaIndexes.forEach((index) => moderator.turnOffMike(players, index)); //NOTE - 마피아들 마이크 끔
 
   moderator.speak("고개를 숙이시구요. 이제 의사를 뽑겠습니다.");
   console.log("의사 뽑음");
@@ -574,14 +579,15 @@ const gamePlay = () => {
   moderator.startTimer(90); //NOTE - 시간 재기
   killedPlayer = players[mafiaIndexes[0]].killCitizen(players, 0); //NOTE - 0번 인덱스 플레이어가 마피아가 아니라고 가정하고 0번 인덱스 플레이어 죽임
 
-  mafiaIndexes.forEach((index) => moderator.turnOnCamera(players, index)); //NOTE - 마피아들 카메라 끔
-  mafiaIndexes.forEach((index) => moderator.turnOnMike(players, index)); //NOTE - 마피아들 마이크 끔
+  mafiaIndexes.forEach((index) => moderator.turnOffCamera(players, index)); //NOTE - 마피아들 카메라 끔
+  mafiaIndexes.forEach((index) => moderator.turnOffMike(players, index)); //NOTE - 마피아들 마이크 끔
 
   moderator.speak("이제 의사는 일어나서 누구를 살릴 지 결정해주세요.");
 
   doctorIndexes = roles["의사"]; //NOTE - 역할이 의사인 플레이어 인덱스 반환 (다수인 경우 상정)
   //FIXME - 화면 켜짐이 나오는데 카메라 이야기인가요?
   moderator.startTimer(90); //NOTE - 시간 재기
+  //FIXME - 의사가 살리는 코드 누락
 
   moderator.speak("이제 경찰은 일어나서 마피아 의심자를 결정해주세요.");
   //FIXME - 화면 켜짐이 나오는데 카메라 이야기인가요?
